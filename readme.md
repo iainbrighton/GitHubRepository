@@ -1,13 +1,14 @@
 ## GitHubRepository Module ##
-The GitHubRepository module provides a single `Install-GitHubRepository` cmdlet that
-will download and extract PowerShell modules hosted in a GitHub repository. GitHub developement
+The __GitHubRepository__ module provides a single `Install-GitHubRepository` cmdlet that
+will download and extract PowerShell modules hosted in a GitHub repository. GitHub development
 branches often include new and unreleased functionality that may need to be downloaded directly
 from GitHub until they are officially released. Manually downloading, unblocking and renaming
 directories is a slow and cumbersome process. No longer!
 
 The `Install-GitHubRepository` cmdlet is primarily intended to help bootstrap the installation
-of Powershell modules and DSC resources that have not been (yet) published to the PowerShell
-Gallery or have been updated on a development branch and are needed for testing purposes.
+of Powershell modules and DSC resources that have not been (yet) published to the [PowerShell
+Gallery](https://www.powershellgallery.com/) or have been updated on a development branch and
+are needed for testing purposes.
 
 As an example, the development branch of the Microsoft-owned Active Directory DSC
 resource can simply be installed on the local machine by running:
@@ -38,12 +39,11 @@ Install-GitHubRepository -Owner IainBrighton -Repository PhatGit -DestinationPat
 If a GitHub repository name does not match the desired module directory, for example
 the repository name does not match a module's name, then the destination folder
 can be overridden with the `-OverrideRepository` switch.
-This is currently the case with the [VirtualEngineLab](https://github.com/VirtualEngine/Lab)
-module.
 
-The VirtualEngineLab module's repository name is 'Lab' but the module needs to be
-downloads and extracted into the 'VirtualEngineLab' directory. The following command
-downloads and registers the module in the correct directory:
+This is currently the case with the [VirtualEngineLab](https://github.com/VirtualEngine/Lab)
+module. The VirtualEngineLab module's GitHub repository name is 'Lab', but the module needs to be
+downloaded and extracted into the 'VirtualEngineLab' directory, not the 'Lab' directory. The
+following command downloads and registers the module in the correct directory:
 ```powershell
 Install-GitHubRepository -Owner VirtualEngine -Repository Lab -OverrideRepository VirtualEngineLab
 ```
