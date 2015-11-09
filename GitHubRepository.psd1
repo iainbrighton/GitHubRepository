@@ -1,6 +1,6 @@
 @{
     RootModule = 'GitHubRepository.psm1';
-    ModuleVersion = '0.9.1';
+    ModuleVersion = '0.9.2';
     GUID = '0027d388-f938-411a-b48e-282dc2668f2c';
     Author = 'Iain Brighton';
     CompanyName = 'Iain Brighton';
@@ -10,7 +10,7 @@
     PrivateData = @{
         PSData = @{
             Tags = @('PowerShell','GitHub','Repository','Install','Development','Module','DSC')
-            LicenseUri = 'https://github.com/iainbrighton/GitHubRepository/master/LICENSE';
+            LicenseUri = 'https://raw.githubusercontent.com/iainbrighton/GitHubRepository/master/LICENSE';
             ProjectUri = 'https://github.com/iainbrighton/GitHubRepository';
             # IconUri = '';
         } # End of PSData hashtable
