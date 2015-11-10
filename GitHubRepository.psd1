@@ -1,6 +1,6 @@
 @{
     RootModule = 'GitHubRepository.psm1';
-    ModuleVersion = '0.9.2';
+    ModuleVersion = '0.9.3';
     GUID = '0027d388-f938-411a-b48e-282dc2668f2c';
     Author = 'Iain Brighton';
     CompanyName = 'Iain Brighton';

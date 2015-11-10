@@ -131,7 +131,7 @@ function ExpandZipArchiveItem {
         [ValidateNotNullOrEmpty()] [System.String] $OverrideRepository,
         
         # Overwrite existing physical filesystem files
-        [System.Management.Automation.SwitchParameter] $Force  
+        [Parameter()] [System.Management.Automation.SwitchParameter] $Force  
     )
     begin {
         Write-Debug 'Loading ''System.IO.Compression'' .NET binaries.';
@@ -308,7 +308,7 @@ function ResolveGitHubUri {
     param (
         [Parameter(Mandatory, ValueFromPipelineByPropertyName)] [System.String] $Owner,
         [Parameter(Mandatory, ValueFromPipelineByPropertyName)] [System.String] $Repository,
-        [ValidateNotNullOrEmpty()] [System.String] $Branch = 'master'
+        [Parameter()] [ValidateNotNullOrEmpty()] [System.String] $Branch = 'master'
     )
     process {
         $uri = 'https://github.com/{0}/{1}/archive/{2}.zip' -f $Owner, $Repository, $Branch;
@@ -342,16 +342,16 @@ function Install-GitHubRepository {
     param (
         [Parameter(Mandatory, ValueFromPipelineByPropertyName)] [System.String] $Owner,
         [Parameter(Mandatory, ValueFromPipelineByPropertyName)] [System.String] $Repository,
-        [ValidateNotNullOrEmpty()] [System.String] $Branch = 'master',
-        [ValidateNotNullOrEmpty()] [System.String] $DestinationPath = "$env:ProgramFiles\WindowsPowershell\Modules",
-        [ValidateNotNullOrEmpty()] [System.String] $OverrideRepository,
-        [System.Management.Automation.SwitchParameter] $Force
+        [Parameter()] [ValidateNotNullOrEmpty()] [System.String] $Branch = 'master',
+        [Parameter()] [ValidateNotNullOrEmpty()] [System.String] $DestinationPath = "$env:ProgramFiles\WindowsPowershell\Modules",
+        [Parameter()] [ValidateNotNullOrEmpty()] [System.String] $OverrideRepository,
+        [Parameter()] [System.Management.Automation.SwitchParameter] $Force
     )
     process {
         $uri = ResolveGitHubUri -Owner $Owner -Repository $Repository -Branch $Branch;
         $tempDestinationFilename = '{0}-{1}.zip' -f $Repository, $Branch;
         $tempDestinationPath = Join-Path -Path $env:TEMP -ChildPath $tempDestinationFilename;
-        Start-BitsTransfer -Source $uri.AbsoluteUri -Destination $tempDestinationPath;
+        [ref] $null = Invoke-WebRequest -Uri $uri.AbsoluteUri -OutFile $tempDestinationPath;
         Unblock-File -Path $tempDestinationPath;
 
         $expandZipArchiveParams = @{
@@ -368,6 +368,7 @@ function Install-GitHubRepository {
         
         $modulePath = Join-Path -Path $DestinationPath -ChildPath $Repository;
         if ($OverrideRepository) { $modulePath = Join-Path -Path $DestinationPath -ChildPath $OverrideRepository; }
+        
         return (Get-Item -Path $modulePath);
     } #end process
 } #end function Install-GitHubRepository
