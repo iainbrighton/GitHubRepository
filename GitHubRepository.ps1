@@ -25,26 +25,27 @@ function ExpandZipArchive {
         A System.IO.FileInfo object for each extracted file.
 #>
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSShouldProcess','')]
     [OutputType([System.IO.FileInfo])]
     param (
         # Source path to the Zip Archive.
-        [Parameter(Mandatory, ValueFromPipelineByPropertyName, Position = 0)]
-        [ValidateNotNullOrEmpty()] [Alias('PSPath','FullName')] [System.String[]] $Path,
+        [Parameter(Mandatory, ValueFromPipelineByPropertyName, Position = 0)] [ValidateNotNullOrEmpty()]
+        [Alias('PSPath','FullName')] [System.String[]] $Path,
         
         # Destination file path to extract the Zip Archive item to.
-        [Parameter(Mandatory, ValueFromPipelineByPropertyName, Position = 1)]
-        [ValidateNotNullOrEmpty()] [System.String] $DestinationPath,
+        [Parameter(Mandatory, ValueFromPipelineByPropertyName, Position = 1)] [ValidateNotNullOrEmpty()]
+        [System.String] $DestinationPath,
         
         # GitHub repository name
-        [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
-        [ValidateNotNullOrEmpty()] [System.String] $Repository,
+        [Parameter(Mandatory, ValueFromPipelineByPropertyName)] [ValidateNotNullOrEmpty()]
+        [System.String] $Repository,
         
         # GitHub repository branch name
-        [Parameter(ValueFromPipelineByPropertyName, Position = 2)]
-        [ValidateNotNullOrEmpty()] [System.String] $Branch = 'master',
+        [Parameter(ValueFromPipelineByPropertyName, Position = 2)] [ValidateNotNullOrEmpty()]
+        [System.String] $Branch = 'master',
 
-        [Parameter(ValueFromPipelineByPropertyName)]
-        [ValidateNotNullOrEmpty()] [System.String] $OverrideRepository,
+        [Parameter(ValueFromPipelineByPropertyName)] [ValidateNotNullOrEmpty()]
+        [System.String] $OverrideRepository,
         
         # Overwrite existing files
         [Parameter(ValueFromPipelineByPropertyName)]
@@ -120,18 +121,16 @@ function ExpandZipArchiveItem {
         [ValidateNotNullOrEmpty()] [System.String] $DestinationPath,
 
         # GitHub repository name
-        [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
-        [ValidateNotNullOrEmpty()] [System.String] $Repository,
+        [Parameter(Mandatory, ValueFromPipelineByPropertyName)] [System.String] $Repository,
 
         # GitHub repository branch name
-        [Parameter(ValueFromPipelineByPropertyName)]
-        [ValidateNotNullOrEmpty()] [System.String] $Branch = 'master',
+        [Parameter(ValueFromPipelineByPropertyName)] [ValidateNotNullOrEmpty()] [System.String] $Branch = 'master',
 
-        [Parameter(ValueFromPipelineByPropertyName)]
-        [ValidateNotNullOrEmpty()] [System.String] $OverrideRepository,
+        [Parameter(ValueFromPipelineByPropertyName)] [ValidateNotNullOrEmpty()] [System.String] $OverrideRepository,
         
         # Overwrite existing physical filesystem files
-        [Parameter()] [System.Management.Automation.SwitchParameter] $Force  
+        [Parameter(ValueFromPipelineByPropertyName)]
+        [System.Management.Automation.SwitchParameter] $Force  
     )
     begin {
         Write-Debug 'Loading ''System.IO.Compression'' .NET binaries.';
@@ -200,7 +199,7 @@ function ExpandZipArchiveItem {
                 else {
                     ## Just overwrite any existing file
                     if ($Force -or $PSCmdlet.ShouldProcess($fullDestinationFilePath, 'Expand')) {
-                        Write-Verbose ($localized.ExtractingZipArchiveEntry -f $fullDestinationFilePath);
+                        Write-Debug ($localized.ExtractingZipArchiveEntry -f $fullDestinationFilePath);
                         [System.IO.Compression.ZipFileExtensions]::ExtractToFile($zipArchiveEntry, $fullDestinationFilePath, $true);
                         ## Return a FileInfo object to the pipline
                         Write-Output (Get-Item -Path $fullDestinationFilePath);
@@ -223,10 +222,10 @@ function CloseZipArchive {
     param ()
     process {
         Write-Verbose ($localized.ClosingZipArchive -f $Path);
-        if ($zipArchive -ne $null) {
+        if ($null -ne $zipArchive) {
             $zipArchive.Dispose();
         }
-        if ($fileStream -ne $null) {
+        if ($null -ne $fileStream) {
             $fileStream.Close();
         }
     } # end process
@@ -306,9 +305,14 @@ function ResolveGitHubUri {
     [CmdletBinding()]
     [OutputType([System.Uri])]
     param (
-        [Parameter(Mandatory, ValueFromPipelineByPropertyName)] [System.String] $Owner,
-        [Parameter(Mandatory, ValueFromPipelineByPropertyName)] [System.String] $Repository,
-        [Parameter()] [ValidateNotNullOrEmpty()] [System.String] $Branch = 'master'
+        [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
+        [System.String] $Owner,
+        
+        [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
+        [System.String] $Repository,
+        
+        [Parameter(ValueFromPipelineByPropertyName)] [ValidateNotNullOrEmpty()]
+        [System.String] $Branch = 'master'
     )
     process {
         $uri = 'https://github.com/{0}/{1}/archive/{2}.zip' -f $Owner, $Repository, $Branch;
@@ -340,12 +344,23 @@ function Install-GitHubRepository {
     [CmdletBinding()]
     [OutputType([System.IO.DirectoryInfo])]
     param (
-        [Parameter(Mandatory, ValueFromPipelineByPropertyName)] [System.String] $Owner,
-        [Parameter(Mandatory, ValueFromPipelineByPropertyName)] [System.String] $Repository,
-        [Parameter()] [ValidateNotNullOrEmpty()] [System.String] $Branch = 'master',
-        [Parameter()] [ValidateNotNullOrEmpty()] [System.String] $DestinationPath = "$env:ProgramFiles\WindowsPowershell\Modules",
-        [Parameter()] [ValidateNotNullOrEmpty()] [System.String] $OverrideRepository,
-        [Parameter()] [System.Management.Automation.SwitchParameter] $Force
+        [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
+        [System.String] $Owner,
+        
+        [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
+        [System.String] $Repository,
+        
+        [Parameter(ValueFromPipelineByPropertyName)] [ValidateNotNullOrEmpty()]
+        [System.String] $Branch = 'master',
+        
+        [Parameter(ValueFromPipelineByPropertyName)] [ValidateNotNullOrEmpty()]
+        [System.String] $DestinationPath = "$env:ProgramFiles\WindowsPowershell\Modules",
+        
+        [Parameter(ValueFromPipelineByPropertyName)] [ValidateNotNullOrEmpty()]
+        [System.String] $OverrideRepository,
+        
+        [Parameter(ValueFromPipelineByPropertyName)]
+        [System.Management.Automation.SwitchParameter] $Force
     )
     process {
         $uri = ResolveGitHubUri -Owner $Owner -Repository $Repository -Branch $Branch;
