@@ -6,6 +6,7 @@ ConvertFrom-StringData @'
     CreatingDirectory           = Creating target directory '{0}'.
     ExtractingZipArchiveEntry   = Extracting Zip archive entry '{0}'.
     ClosingZipArchive           = Closing Zip archive '{0}'.
+    CleaningRepositoryDirectory = Cleaning repository directory '{0}'.
 
     TargetFileExistsWarning     = Target file '{0}' already exists.
 
@@ -49,7 +50,11 @@ function ExpandZipArchive {
         
         # Overwrite existing files
         [Parameter(ValueFromPipelineByPropertyName)]
-        [System.Management.Automation.SwitchParameter] $Force
+        [System.Management.Automation.SwitchParameter] $Force,
+        
+        ## Remove root folders/files in archive from destination path.
+        [Parameter(ValueFromPipelineByPropertyName)]
+        [System.Management.Automation.SwitchParameter] $Clean
     )
     begin {
         ## Validate destination path      
@@ -71,6 +76,18 @@ function ExpandZipArchive {
         Add-Type -AssemblyName 'System.IO.Compression.FileSystem';
     } # end begin
     process {
+        if ($Clean) {
+            ## Remove repository directory before expanding any items..
+            $repositoryPath = Join-Path -Path $DestinationPath -ChildPath $Repository;
+            if ($OverrideRepository) {
+                $repositoryPath = Join-Path -Path $DestinationPath -ChildPath $OverrideRepository;
+            }
+            Write-Verbose ($localized.CleaningRepositoryDirectory -f $repositoryPath);
+            if (Test-Path -Path $repositoryPath -PathType Container) {
+                Remove-Item -Path $repositoryPath -Force -Recurse -ErrorAction Stop;
+            }
+        }
+
         foreach ($pathEntry in $LiteralPath) {
             try {
                 Write-Verbose ($localized.ExpandingZipArchive -f $pathEntry);
@@ -126,11 +143,12 @@ function ExpandZipArchiveItem {
         # GitHub repository branch name
         [Parameter(ValueFromPipelineByPropertyName)] [ValidateNotNullOrEmpty()] [System.String] $Branch = 'master',
 
+        ## Override repository name
         [Parameter(ValueFromPipelineByPropertyName)] [ValidateNotNullOrEmpty()] [System.String] $OverrideRepository,
         
         # Overwrite existing physical filesystem files
         [Parameter(ValueFromPipelineByPropertyName)]
-        [System.Management.Automation.SwitchParameter] $Force  
+        [System.Management.Automation.SwitchParameter] $Force
     )
     begin {
         Write-Debug 'Loading ''System.IO.Compression'' .NET binaries.';
@@ -146,7 +164,7 @@ function ExpandZipArchiveItem {
             if ($OverrideRepository) {
                 $replacementString = '{0}\' -f $OverrideRepository;
             }
-
+            
             foreach ($zipArchiveEntry in $InputObject) {
 
                 if ($zipArchiveEntry.FullName.Contains('/')) {
@@ -340,8 +358,10 @@ function Install-GitHubRepository {
         Specifies overriding the repository name when it's expanded to disk. Use this parameter when the extracted Zip file path does not meet your requirements, i.e. when the repository name does not match the Powershell module name.
     .PARAMETER Force
         Forces the extraction of files from an archive file. By default, any files that exist on the local file system are not overwritten.
+    .PARAMETER Clean
+        Removes the existing repository folder from the local file system before extracting the archive. This ensures that local repository matches the source GitHub repository. Note: this should only be used with PowerShell module/DSC repositories.
 #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'Clean')]
     [OutputType([System.IO.DirectoryInfo])]
     param (
         [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
@@ -359,8 +379,11 @@ function Install-GitHubRepository {
         [Parameter(ValueFromPipelineByPropertyName)] [ValidateNotNullOrEmpty()]
         [System.String] $OverrideRepository,
         
-        [Parameter(ValueFromPipelineByPropertyName)]
-        [System.Management.Automation.SwitchParameter] $Force
+        [Parameter(ValueFromPipelineByPropertyName, ParameterSetName = 'Force')]
+        [System.Management.Automation.SwitchParameter] $Force,
+        
+        [Parameter(ValueFromPipelineByPropertyName, ParameterSetName = 'Clean')]
+        [System.Management.Automation.SwitchParameter] $Clean
     )
     process {
         $uri = ResolveGitHubUri -Owner $Owner -Repository $Repository -Branch $Branch;
@@ -375,6 +398,7 @@ function Install-GitHubRepository {
             Repository = $Repository;
             Branch = $Branch;
             Force = $Force;
+            Clean = $Clean;
         }
         if ($OverrideRepository) {
             $expandZipArchiveParams['OverrideRepository'] = $OverrideRepository;

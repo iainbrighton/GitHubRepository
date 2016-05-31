@@ -115,6 +115,30 @@ Describe $moduleName {
 
                 Assert-MockCalled ExpandZipArchive -ParameterFilter { -not [String]::IsNullOrEmpty($OverrideRepository) } -Scope It;
             }
+            
+            It 'Calls "ExpandZipArchive" with "Force" when specified' {
+                $testOwner = 'TestOwner';
+                $testRepository = 'TestRepository';
+                $testDestinationPath = 'TestDrive:\';
+                Mock Invoke-WebRequest -MockWith { New-Item -Path $OutFile -ItemType File -Force -ErrorAction SilentlyContinue; }
+                Mock ExpandZipArchive -ParameterFilter { $Force -eq $true } -MockWith { New-Item -Path "$DestinationPath\$Repository" -ItemType Directory -Force -ErrorAction SilentlyContinue; }
+                
+                Install-GitHubRepository -Owner $testOwner -Repository $testRepository -DestinationPath $testDestinationPath -Force;
+
+                Assert-MockCalled ExpandZipArchive -ParameterFilter { $Force -eq $true } -Scope It;
+            }
+            
+            It 'Calls "ExpandZipArchive" with "Clean" when specified' {
+                $testOwner = 'TestOwner';
+                $testRepository = 'TestRepository';
+                $testDestinationPath = 'TestDrive:\';
+                Mock Invoke-WebRequest -MockWith { New-Item -Path $OutFile -ItemType File -Force -ErrorAction SilentlyContinue; }
+                Mock ExpandZipArchive -ParameterFilter { $Clean -eq $true } -MockWith { New-Item -Path "$DestinationPath\$Repository" -ItemType Directory -Force -ErrorAction SilentlyContinue; }
+                
+                Install-GitHubRepository -Owner $testOwner -Repository $testRepository -DestinationPath $testDestinationPath -Clean;
+
+                Assert-MockCalled ExpandZipArchive -ParameterFilter { $Clean -eq $true } -Scope It;
+            }
 
             It 'Calls "Invoke-WebRequest" with "/archive/master.zip" by default' {
                 $testOwner = 'TestOwner';
