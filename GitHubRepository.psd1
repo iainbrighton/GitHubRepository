@@ -1,12 +1,13 @@
 @{
     RootModule = 'GitHubRepository.psm1';
-    ModuleVersion = '1.1.0';
+    ModuleVersion = '1.2.0';
     GUID = '0027d388-f938-411a-b48e-282dc2668f2c';
     Author = 'Iain Brighton';
     CompanyName = 'Iain Brighton';
     Copyright = '(c) 2016 Iain Brighton. All rights reserved.';
     Description = 'Downloads and installs PowerShell modules and DSC resources directly from GitHub.';
     PowerShellVersion = '4.0';
+    FunctionsToExport = @('Install-GitHubRepository');
     PrivateData = @{
         PSData = @{
             Tags = @('PowerShell','GitHub','Repository','Install','Development','Module','DSC')
